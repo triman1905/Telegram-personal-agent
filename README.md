@@ -1,1 +1,1 @@
-# Telegram-personal-agent
+# Telegram-personal-assistant-agent
