@@ -1,0 +1,262 @@
+{
+  "name": "My Google Calender Agent Flow",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "text"
+            },
+            {
+              "name": "sessionid"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -304,
+        -16
+      ],
+      "id": "b2452f88-e32a-4638-b007-b93f6eebd802",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.text }}",
+        "options": {
+          "systemMessage": "=You are a Google Calendar assistant.\n\nYour job is to ALWAYS use Google Calendar tools when the user asks about events,\nschedule, meetings, or availability.\n\nCurrent date and time: {{ $now }}\nUser timezone: Asia/Kolkata (IST)\n\nYou can:\n- Create events in Google Calendar\n- Read events from Google Calendar\n- List events for a specific day\n\n────────────────────────────\nRULES (VERY IMPORTANT)\n────────────────────────────\n\n1. NEVER answer calendar questions from memory.\n2. NEVER assume events exist or do not exist.\n3. ALWAYS call the appropriate Google Calendar tool.\n\n────────────────────────────\nWHEN USER ASKS FOR EVENTS\n────────────────────────────\n\nIf the user asks:\n- \"what are my events today?\"\n- \"today’s schedule\"\n- \"do I have anything scheduled?\"\n- \"list today’s events\"\n\nThen you MUST:\n\n1. Define TODAY as:\n   - Start: 00:00 (midnight)\n   - End: 23:59 (same day)\n   - Timezone: Asia/Kolkata\n\n2. Call the **get_many_events_calendar** tool\n3. Pass a proper time range (start and end)\n4. Read the tool response\n5. Respond ONLY using tool output\n\nIf NO events are returned:\n- Clearly say: \"You have no events scheduled for today.\"\n\nIf events ARE returned:\n- Summarize each event with:\n  - Title (summary)\n  - Start time\n  - End time\n- Use clear, human-friendly language\n- Do NOT include links or raw JSON\n\n────────────────────────────\nWHEN USER ASKS TO CREATE EVENTS\n────────────────────────────\n\nIf the user asks to create an event:\n- You MUST collect or infer:\n  - Summary\n  - Start date & time\n  - End date & time\n  - Timezone (Asia/Kolkata)\n\nThen:\n1. Call the **create event** Google Calendar tool\n2. Confirm creation in natural language\n\n────────────────────────────\nIMPORTANT\n────────────────────────────\n\n- Use **get events** tools for reading\n- Use **create event** tools for creating\n- Do NOT mix the two\n- Always rely on tool output\n\n\n\n\n\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -96,
+        -16
+      ],
+      "id": "bd36aa81-7368-4b27-b55e-235246749e9f",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "tkkaur1905@gmail.com",
+          "mode": "list",
+          "cachedResultName": "tkkaur1905@gmail.com"
+        },
+        "start": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Start', ``, 'string') }}",
+        "end": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('End', ``, 'string') }}",
+        "additionalFields": {
+          "summary": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Summary', ``, 'string') }}"
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        -16,
+        368
+      ],
+      "id": "7804ccc1-4e06-466c-bf2a-bd56a61be272",
+      "name": "Create an event in Google Calendar",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "Jo7D40IwJaZxCSNM",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "=00-{{ $json.sessionid }}",
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -96,
+        192
+      ],
+      "id": "be5b61a4-c72f-4dc7-b65d-0c0b55c1b1d6",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Use this tool to get all calendar events for a specific day.\nUse it when the user asks about today's schedule or events.\nThis tool MUST be used for ANY question about dates, today, tomorrow, or events.\nNever answer from memory.\n\n",
+        "operation": "getAll",
+        "calendar": {
+          "__rl": true,
+          "value": "tkkaur1905@gmail.com",
+          "mode": "list",
+          "cachedResultName": "tkkaur1905@gmail.com"
+        },
+        "limit": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Limit', ``, 'number') }}",
+        "timeMin": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('After', ``, 'string') }}",
+        "timeMax": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Before', ``, 'string') }}",
+        "options": {
+          "timeZone": {
+            "__rl": true,
+            "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Timezone', ``, 'string') }}",
+            "mode": "id"
+          }
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        176,
+        384
+      ],
+      "id": "9f20fb98-aefd-4fee-aa4e-8edf935ab097",
+      "name": "get_many_events_calender",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "Jo7D40IwJaZxCSNM",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-20b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        176
+      ],
+      "id": "e494f0c0-c89c-443a-9c06-85772ad3ff2c",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "ounrds1zBQmpbrEz",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "257259dc-d46a-4cd4-8b49-2ab913a68ea9",
+              "name": "response",
+              "value": "=Here are your events {{ $json.output }}",
+              "type": "string"
+            },
+            {
+              "id": "e468a614-1a6c-4fd1-a403-1ba31794343c",
+              "name": "events_summary",
+              "value": "={{\nArray.isArray($json.output?.response) && $json.output.response.length > 0\n  ? $json.output.response\n      .map(e => `• ${e.summary || 'No title'} (${e.start.dateTime || e.start.date} – ${e.end.dateTime || e.end.date})`)\n      .join('\\n')\n  : 'No events found.'\n}}\n",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        384,
+        384
+      ],
+      "id": "9e823893-d449-49e5-949f-291a1ea18f18",
+      "name": "Edit Fields"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create an event in Google Calendar": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get_many_events_calender": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "581b6484-cffe-4af5-bd99-59d6cfa13463",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "d8e3be2b154937575e3514f18cadded9683ad990d8caef9b59e0605484d90045"
+  },
+  "id": "N8PhVNnAipraJLYpPMtch",
+  "tags": [
+    {
+      "updatedAt": "2026-01-23T20:15:28.457Z",
+      "createdAt": "2026-01-23T20:15:28.457Z",
+      "id": "6hHV2tN9WJXIYhxY",
+      "name": "Google-calender"
+    }
+  ]
+}
